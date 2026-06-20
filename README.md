@@ -34,3 +34,9 @@ http://127.0.0.1:8787
 npm run check
 npm test
 ```
+
+## 安装与配置文档
+
+完整工具链、Boss MCP 安装、AI/MCP 配置、代理设置和常见问题见：
+
+- [安装与配置指南](docs/setup-and-troubleshooting.md)

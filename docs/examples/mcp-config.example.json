@@ -1,0 +1,14 @@
+{
+  "servers": [
+    {
+      "id": "boss",
+      "name": "boss-mcp",
+      "enabled": true,
+      "transport": "stdio",
+      "command": "C:\\Users\\<your-user>\\.local\\bin\\boss-mcp.exe",
+      "args": ["--transport", "stdio"],
+      "cwd": "C:\\Users\\<your-user>",
+      "env": {}
+    }
+  ]
+}

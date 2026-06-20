@@ -1,0 +1,17 @@
+{
+  "provider": "openai-compatible",
+  "endpoint": "https://your-relay.example.com/v1",
+  "model": "gpt-4.1-mini",
+  "apiKey": "",
+  "requestFormat": "openai-compatible",
+  "requestMethod": "POST",
+  "requestPath": "/chat/completions",
+  "headersTemplate": "",
+  "bodyTemplate": "",
+  "responsePath": "choices[0].message.content",
+  "temperature": 0.4,
+  "voiceInput": true,
+  "voiceOutput": true,
+  "voiceProfile": "jarvis",
+  "memory": false
+}

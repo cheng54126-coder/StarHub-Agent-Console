@@ -2,11 +2,13 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 import { appendEvent, getMcpConfig } from "./store.js";
 
-const bossMcpPath = "C:\\Users\\86156\\.local\\bin\\boss-mcp.exe";
-const bossCliPath = "C:\\Users\\86156\\.local\\bin\\boss.exe";
+const userProfile = process.env.USERPROFILE || "C:\\Users\\86156";
+const appData = process.env.APPDATA || path.join(userProfile, "AppData", "Roaming");
+const bossMcpPath = process.env.BOSS_MCP_PATH || path.join(userProfile, ".local", "bin", "boss-mcp.exe");
+const bossCliPath = process.env.BOSS_CLI_PATH || path.join(userProfile, ".local", "bin", "boss.exe");
 const bossBinDir = path.dirname(bossMcpPath);
-const bossToolScriptsDir = "C:\\Users\\86156\\AppData\\Roaming\\uv\\tools\\boss-agent-cli\\Scripts";
-const defaultMcpCwd = process.env.USERPROFILE || "C:\\Users\\86156";
+const bossToolScriptsDir = process.env.BOSS_TOOL_SCRIPTS_DIR || path.join(appData, "uv", "tools", "boss-agent-cli", "Scripts");
+const defaultMcpCwd = userProfile;
 const mcpProtocolVersion = "2024-11-05";
 
 function runCommand(command, args, timeoutMs = 10_000) {

@@ -15,6 +15,9 @@ export const serverConfig = {
   requestTimeoutMs: 60_000,
 };
 
+const userProfile = process.env.USERPROFILE || "C:\\Users\\86156";
+const defaultBossMcpPath = process.env.BOSS_MCP_PATH || path.join(userProfile, ".local", "bin", "boss-mcp.exe");
+
 export const defaultAiConfig = {
   provider: "ollama",
   endpoint: "http://127.0.0.1:11434/v1",
@@ -53,9 +56,9 @@ export const defaultMcpConfig = {
       name: "boss-mcp",
       enabled: true,
       transport: "stdio",
-      command: "C:\\Users\\86156\\.local\\bin\\boss-mcp.exe",
+      command: defaultBossMcpPath,
       args: ["--transport", "stdio"],
-      cwd: "C:\\Users\\86156",
+      cwd: userProfile,
       env: {},
     },
   ],
