@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080c0f" />
+    <title>JARVIS Wake Console</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-theme="aurora">
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true"></div>
+
+    <main class="console-grid">
+      <aside class="module-rail" aria-label="Jarvis function modules">
+        <section class="module brand-module">
+          <a class="brand" href="#" aria-label="Jarvis console home">
+            <span class="brand-mark" aria-hidden="true">J</span>
+            <span>
+              <strong>JARVIS</strong>
+              <small>Local Agent Console</small>
+            </span>
+          </a>
+          <div class="mini-status">
+            <span id="statusBadge">Standby</span>
+            <strong id="clock">--:--</strong>
+          </div>
+        </section>
+
+        <section class="module controls-module">
+          <div class="module-header">
+            <p>Controls</p>
+            <span><b id="themeBadge">Aurora</b> / <b id="modeBadge">Standby</b></span>
+          </div>
+          <div class="control-group">
+            <p>Visual Style</p>
+            <div class="segmented" role="group" aria-label="Visual style">
+              <button class="is-active" type="button" data-theme="aurora">Aurora</button>
+              <button type="button" data-theme="ember">Ember</button>
+              <button type="button" data-theme="frost">Frost</button>
+            </div>
+          </div>
+          <div class="control-group">
+            <p>Agent Mode</p>
+            <div class="segmented" role="group" aria-label="Agent mode">
+              <button class="is-active" type="button" data-mode="standby">Standby</button>
+              <button type="button" data-mode="operator">Operator</button>
+              <button type="button" data-mode="silent">Silent</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="module ai-module" id="ai-config">
+          <div class="module-header">
+            <p>AI Config</p>
+            <span id="aiConfigBadge">Local</span>
+          </div>
+          <label class="field">
+            <span>Provider</span>
+            <select id="aiProvider">
+              <option value="ollama">Ollama</option>
+              <option value="openai-compatible">OpenAI Compatible</option>
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="gemini">Google Gemini</option>
+              <option value="custom">Custom</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Endpoint</span>
+            <input id="aiEndpoint" type="text" value="http://127.0.0.1:11434/v1" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>Model</span>
+            <input id="aiModel" type="text" value="qwen2.5:7b" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>API Key <strong id="aiKeyState">Not set</strong></span>
+            <input id="aiApiKey" type="password" placeholder="Paste provider key" autocomplete="off" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>Request Format</span>
+            <select id="aiRequestFormat">
+              <option value="openai-compatible">OpenAI Chat Completions</option>
+              <option value="openai-responses">OpenAI Responses</option>
+              <option value="openai-completions">OpenAI Legacy Completions</option>
+              <option value="claude-compatible">Claude Messages</option>
+              <option value="claude-bearer-compatible">Claude Bearer Relay</option>
+              <option value="gemini-compatible">Gemini GenerateContent</option>
+              <option value="codex-responses">Codex Responses Relay</option>
+              <option value="custom-template">Custom Template</option>
+            </select>
+          </label>
+          <label class="field template-field">
+            <span>Method / Path</span>
+            <div class="inline-fields">
+              <select id="aiRequestMethod">
+                <option value="POST">POST</option>
+                <option value="GET">GET</option>
+              </select>
+              <input id="aiRequestPath" type="text" placeholder="/responses" spellcheck="false" />
+            </div>
+          </label>
+          <label class="field template-field">
+            <span>Headers JSON</span>
+            <textarea id="aiHeadersTemplate" spellcheck="false" placeholder="{&quot;Authorization&quot;:&quot;Bearer {{apiKey}}&quot;}"></textarea>
+          </label>
+          <label class="field template-field">
+            <span>Body JSON</span>
+            <textarea id="aiBodyTemplate" spellcheck="false" placeholder="{&quot;model&quot;:&quot;{{model}}&quot;,&quot;input&quot;:&quot;{{responsesInputJson}}&quot;}"></textarea>
+          </label>
+          <label class="field template-field">
+            <span>Response Text Path</span>
+            <input id="aiResponsePath" type="text" placeholder="output_text" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>Temperature <strong id="temperatureValue">0.40</strong></span>
+            <input id="aiTemperature" type="range" min="0" max="1.2" step="0.05" value="0.4" />
+          </label>
+          <label class="field">
+            <span>Voice Profile</span>
+            <div class="voice-profile-row">
+              <select id="aiVoiceProfile">
+                <option value="jarvis">Jarvis</option>
+                <option value="calm">Calm</option>
+                <option value="deep">Deep</option>
+                <option value="bright">Bright</option>
+                <option value="fast">Fast</option>
+              </select>
+              <button id="aiVoicePreview" type="button">试听</button>
+            </div>
+          </label>
+          <div class="switch-list" aria-label="AI channels">
+            <label><input id="voiceInputEnabled" type="checkbox" checked /><span>Voice in</span></label>
+            <label><input id="voiceOutputEnabled" type="checkbox" checked /><span>Voice out</span></label>
+            <label><input id="memoryEnabled" type="checkbox" /><span>Memory</span></label>
+          </div>
+          <div class="module-actions">
+            <button type="button" data-command="保存 AI 配置" data-ai-action="save">保存</button>
+            <button type="button" data-command="测试 AI 连接" data-ai-action="test">测试</button>
+            <button type="button" data-command="重置 AI 配置" data-ai-action="reset">重置</button>
+          </div>
+        </section>
+
+        <section class="module mcp-module" id="mcp">
+          <div class="module-header">
+            <p>MCP Gateway</p>
+            <span id="mcpBadge">Configured</span>
+          </div>
+          <div class="mcp-server">
+            <div>
+              <span class="server-name">Configured Servers</span>
+              <strong id="mcpServerState">stdio / boss-mcp</strong>
+            </div>
+            <span class="server-led" aria-hidden="true"></span>
+          </div>
+          <div class="mcp-config-list" id="mcpServerList" aria-label="Configured MCP servers"></div>
+          <label class="field">
+            <span>Server ID</span>
+            <input id="mcpServerId" type="text" placeholder="boss" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>Name</span>
+            <input id="mcpServerName" type="text" placeholder="boss-mcp" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>Command</span>
+            <input id="mcpServerCommand" type="text" placeholder="C:\Users\...\server.exe" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>Args</span>
+            <input id="mcpServerArgs" type="text" placeholder="--transport stdio" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>Env JSON</span>
+            <textarea id="mcpServerEnv" spellcheck="false" placeholder="{&quot;API_KEY&quot;:&quot;value&quot;}"></textarea>
+          </label>
+          <div class="switch-list mcp-config-switch" aria-label="MCP server state">
+            <label><input id="mcpServerEnabled" type="checkbox" checked /><span>Enabled</span></label>
+            <button type="button" data-mcp-config-action="new">新增</button>
+            <button type="button" data-mcp-config-action="save">保存配置</button>
+          </div>
+          <div class="tool-chips" aria-label="MCP tools">
+            <span>boss.search</span>
+            <span>boss.recommend</span>
+            <span>boss.chat</span>
+            <span>boss.apply</span>
+          </div>
+          <div class="module-actions">
+            <button type="button" data-command="连接 MCP" data-mcp-action="connect">连接</button>
+            <button type="button" data-command="同步 MCP 工具" data-mcp-action="sync">同步</button>
+            <button type="button" data-command="测试 boss-mcp" data-mcp-action="test">测试</button>
+          </div>
+        </section>
+
+        <section class="module apply-module" id="applyWorkbench">
+          <div class="module-header">
+            <p>Apply Workbench</p>
+            <span id="applyBadge">Idle</span>
+          </div>
+          <div class="apply-progress" id="applyProgress">0 / 0 pending</div>
+          <div class="apply-search-grid">
+            <label class="field">
+              <span>Keyword</span>
+              <input id="applyKeyword" type="text" value="测试工程师" spellcheck="false" />
+            </label>
+            <label class="field">
+              <span>City</span>
+              <input id="applyCity" type="text" value="郑州" spellcheck="false" />
+            </label>
+            <label class="field">
+              <span>Salary</span>
+              <input id="applySalary" type="text" value="10-15K" spellcheck="false" />
+            </label>
+            <label class="field">
+              <span>Count</span>
+              <input id="applyCount" type="number" min="1" max="30" value="10" />
+            </label>
+          </div>
+          <div class="module-actions apply-actions">
+            <button type="button" data-apply-action="search">搜索</button>
+            <button type="button" data-apply-action="prepare">打开并复制</button>
+            <button type="button" data-apply-action="next">下一条</button>
+          </div>
+          <ol class="apply-job-list" id="applyJobList" aria-label="Apply workbench jobs"></ol>
+          <section class="apply-detail-panel" id="applyDetailPanel" aria-label="Selected job detail"></section>
+          <label class="field">
+            <span>Greeting</span>
+            <textarea id="applyGreeting" readonly spellcheck="false" placeholder="选择岗位后生成招呼语"></textarea>
+          </label>
+          <div class="module-actions apply-actions">
+            <button type="button" data-apply-action="copy">复制话术</button>
+            <button type="button" data-apply-action="applied">已投</button>
+            <button type="button" data-apply-action="skip">跳过</button>
+          </div>
+        </section>
+
+        <section class="module compact-module" id="permissions">
+          <div class="module-header">
+            <p>Permissions</p>
+            <span>Guarded</span>
+          </div>
+          <ul class="permission-list">
+            <li><span class="dot is-waiting"></span><span>Microphone</span><strong id="micState">Pending</strong></li>
+            <li><span class="dot is-waiting"></span><span>Screen</span><strong id="screenState">Pending</strong></li>
+            <li><span class="dot is-ready"></span><span>Browser</span><strong>Ready</strong></li>
+            <li><span class="dot is-locked"></span><span>Shell</span><strong>Confirm</strong></li>
+          </ul>
+        </section>
+      </aside>
+
+      <section class="center-stage" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Voice Gateway / Desktop Agent</p>
+          <h1 id="hero-title">唤醒你的本地贾维斯</h1>
+          <p class="hero-subtitle">语音、屏幕、浏览器、MCP 与系统工具的统一控制入口。</p>
+        </div>
+
+        <div class="orb-stage" aria-label="Jarvis wake controls">
+          <button class="wake-core" id="wakeButton" type="button" aria-pressed="false">
+            <canvas id="orbScene" class="orb-canvas" aria-hidden="true"></canvas>
+            <span class="core-ring ring-one"></span>
+            <span class="core-ring ring-two"></span>
+            <span class="core-ring ring-three"></span>
+            <span class="core-light"></span>
+            <span class="core-label">WAKE</span>
+          </button>
+        </div>
+
+        <section class="subtitle-console" aria-live="polite" aria-label="Jarvis subtitles">
+          <div class="subtitle-meta">
+            <span>JARVIS RESPONSE</span>
+            <strong id="subtitleState">Standby</strong>
+          </div>
+          <p id="jarvisSubtitle">系统待命。点击核心唤醒我。</p>
+        </section>
+
+        <form class="ask-console" id="askForm" aria-label="Ask Jarvis">
+          <input id="askInput" type="text" placeholder="直接输入问题，或点击语音按钮开始说话" autocomplete="off" />
+          <button id="voiceAskButton" class="icon-command" type="button" aria-label="语音提问">Voice</button>
+          <button type="submit">Ask</button>
+        </form>
+
+        <div class="quick-actions" aria-label="Quick commands">
+          <button type="button" data-command="检查麦克风">检查麦克风</button>
+          <button type="button" data-command="连接 MCP">连接 MCP</button>
+          <button type="button" data-command="打开任务中心">任务中心</button>
+          <button type="button" data-command="启动本地模型">启动模型</button>
+          <button type="button" data-command="读取屏幕">读取屏幕</button>
+          <button type="button" data-command="搜索网页">搜索网页</button>
+        </div>
+      </section>
+
+      <aside class="chat-dock" aria-label="Recent chat messages">
+        <section class="chat-card">
+          <div class="chat-header">
+            <div>
+              <p>Recent Dialog</p>
+              <span>Latest 10 messages</span>
+            </div>
+            <button type="button" id="clearChatButton" aria-label="Clear chat history">清空</button>
+          </div>
+          <ol class="chat-list" id="chatList"></ol>
+        </section>
+
+        <section class="runtime-card">
+          <div class="chat-header">
+            <div>
+              <p>Runtime</p>
+              <span>System events</span>
+            </div>
+          </div>
+          <ol class="log-list" id="logList">
+            <li><time>00:00</time><span>Console initialized.</span></li>
+            <li><time>00:00</time><span>Awaiting wake signal.</span></li>
+          </ol>
+        </section>
+      </aside>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

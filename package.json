@@ -1,0 +1,15 @@
+{
+  "name": "starhub-agent-console",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "check": "node --check server/server.js && node --check app.js",
+    "test": "node --test server/*.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
